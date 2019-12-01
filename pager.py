@@ -29,7 +29,7 @@ class randomOSObject():
 
     # 2147469841 was found through a python script as the maximum value in the random-number file
     def randomFraction(self):
-        return self.stripFile() / 2147469841
+        return self.stripFile() / 2147469842
 
     def restart(self):
         self.__init__(filepath)
@@ -121,10 +121,10 @@ class ProcessSummary(list):
         
         # Four Processes, Sequential
         elif J == 2:
-            self.append(Process(2,0,0,1))
-            self.append(Process(2,0,0,2))
-            self.append(Process(2,0,0,3))
-            self.append(Process(2,0,0,4))
+            self.append(Process(1,0,0,1))
+            self.append(Process(1,0,0,2))
+            self.append(Process(1,0,0,3))
+            self.append(Process(1,0,0,4))
 
         # Four Processes, Random
         elif J == 3:
@@ -151,6 +151,8 @@ class ProcessSummary(list):
             res += process.res
             faults += process.faults
             evicts += process.evicts
+
+            # print("@@@@@", process.evicts)
 
             if process.evicts == 0:
                 print("Process {} had {} faults.\n     With no evictions, the average residence is undefined.". format(process.processID, process.faults))
@@ -189,11 +191,12 @@ class Page():
 # Class that models individual frames in memory
 class Frame():
     def __init__(self, frameID):
-        self.frameID = frameID
-        self.page = None
+        self.frameID = frameID 
         self.firstRef = 2147469842
         self.finalRef = -1
     
+        self.page = None
+
     def __str__(self):
         if self.page is None:
             return "Frame {} is Empty".format(self.frameID)
@@ -275,7 +278,7 @@ class FrameTable(list):
         return frameT
 
     def manage(self, page):
-        # Maintaining Consistency
+        # Maintaining Consistency - decreasing order
         self.sort(key=lambda f: -f.frameID)
 
         for f in self:
@@ -286,15 +289,17 @@ class FrameTable(list):
         # Evict if full
         if R == "lifo":
             f = self.evictLIFO()
-            f.page = page
+            # f.page = page
         elif R == "random":
             f = self.evictRand()
-            f.page = page
+            # f.page = page
         elif R == "lru":
             f = self.evictLRU()
-            f.page = page
+            # f.page = page
         else:
             raise Exception("Replacement Algo {} does not exist or is not written properly.".format(R))
+        
+        f.page = page
         return f
 
 def finalPrint(M,P,S,J,N,R,_):
@@ -325,7 +330,8 @@ def main():
                 # References Page
                 currentPage = process.getCurrentPage()
                 currentFrame = frameTable.getFrameID(currentPage)
-                
+                specs.time.updateTimeCount()
+
                 # Checking for page fault
                 if currentFrame is None:
                     process.faults += 1     # increment number of page faults
