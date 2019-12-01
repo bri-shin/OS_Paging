@@ -11,7 +11,7 @@ S = 0   # Size of each process, i.e., the references are to virtual addresses 0.
 J = 0   # Job mix, which determines A, B, and C, as described below.
 N = 0   # Number of references for each process.
 R = ""  # Replacement algorithm, LIFO (NOT FIFO), RANDOM, or LRU.
-filepath = 'random-numbers.txt'     # Random Text
+
 
 ''' Helper Functions Implemented (From Lab 2) '''
 
@@ -29,10 +29,10 @@ class randomOSObject():
 
     # 2147469841 was found through a python script as the maximum value in the random-number file
     def randomFraction(self):
-        return self.stripFile() / 2147469841
+        return self.stripFile / 2147469841
 
     def restart(self):
-        self.__init__(filepath)
+        self.__init__(self.filepath)
 
 ### Counter Object is the overarching time counter for the program
 class TimeCounter():
@@ -49,7 +49,6 @@ class TimeCounter():
 
 class Process():
     def __init__(self, A, B, C, processID):
-        super(Process, self).__init__()
         self.A = A              # Probability of sequential memory reference
         self.B = B              # Probability of backward branch
         self.C = C              # Probability of jump around a “then” or “else” block
@@ -92,7 +91,7 @@ class Process():
         return self.pageList[pageIndex]
     
     def referenceUp(self):
-        self.ref += 1
+        self.res += 1
 
     def residencyUp(self):
         self.res += 1
@@ -100,8 +99,7 @@ class Process():
     def boolTerminate(self):
         if self.ref < N:
             return False
-        else:
-            return True
+        return True
 
     def start(self):
         pageLim = int(math.ceil(S/P))
@@ -112,7 +110,7 @@ class Process():
 
 class ProcessSummary(list):
     def __init__(self):
-        super(ProcessSummary, self).__init__()
+        super().__init__()
     
     def start(self, J):
         # One Process, Sequential
@@ -120,7 +118,7 @@ class ProcessSummary(list):
             self.append(Process(1,0,0,1))
         
         # Four Processes, Sequential
-        elif J == 2:
+        if J == 2:
             self.append(Process(2,0,0,1))
             self.append(Process(2,0,0,2))
             self.append(Process(2,0,0,3))
@@ -139,8 +137,6 @@ class ProcessSummary(list):
             self.append(Process(0.75, 0, 0.25, 2))
             self.append(Process(0.75, 0.125, 0.125, 3))
             self.append(Process(0.5, 0.125, 0.125, 4))
-
-        return self
 
     def printSum(self):
         res = 0
@@ -163,9 +159,8 @@ class ProcessSummary(list):
             print("The total number of faults is {} and the overall average residency is {}.".format(faults, res/evicts))
     
     def boolTerminate(self):
-        # checked
         for process in self:
-            if process.boolTerminate() == False:
+            if process.boolTerminate == False:
                 return False
         return True
 
@@ -205,12 +200,12 @@ class Frame():
             raise Exception("Referred frame is empty")
         
         # Retrieving current time when referred
-        time = specs.time.getTimeCount()
+        time = specs.TimeCounter.getTimeCount()
         if time < self.firstRef:
             self.firstRef = time
         if time > self.finalRef:
             self.finalRef = time
-
+        
         self.page.refer()
 
     # def link(self, page):
@@ -231,8 +226,7 @@ class FrameTable(list):
     
     def getFrameID(self, page):
         for f in self:
-            
-            if f.page is not None and (f.page.pageID, f.page.num) == (page.pageID, page.num):
+            if (f.page.pageID, f.page.num) == (page.pageID, page.num) and f.page is not None:
                 return f
         return None
 
@@ -285,13 +279,13 @@ class FrameTable(list):
 
         # Evict if full
         if R == "lifo":
-            f = self.evictLIFO()
+            f = self.evictLIFO
             f.page = page
         elif R == "random":
-            f = self.evictRand()
+            f = self.evictRand
             f.page = page
         elif R == "lru":
-            f = self.evictLRU()
+            f = self.evictLRU
             f.page = page
         else:
             raise Exception("Replacement Algo {} does not exist or is not written properly.".format(R))
@@ -315,11 +309,10 @@ def main():
     processSummary = ProcessSummary().start(J)
 
     # Run while the processes are not termianted
-    while processSummary.boolTerminate() == False:
-        
+    while processSummary.boolTerminate == False:
         for process in processSummary:
             q = 3   # provided
-            for i in range(q):
+            for _ in range(q):
                 if process.boolTerminate():
                     break
                 # References Page
@@ -339,12 +332,11 @@ def main():
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    for i in range(len(args)):
-        if args[i].isnumeric():
-            args[i] = int(args[i])
+    for i in args:
+        if i.isnumeric():
+            int(i)
     
     M,P,S,J,N,R,_ = args
-
     specs.time.currentTimeCount = 0
     specs.rand.restart()
     finalPrint(M,P,S,J,N,R,_)
