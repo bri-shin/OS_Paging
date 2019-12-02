@@ -33,6 +33,7 @@ Refer below for sample inputs.
 ### Sample Inputs:
 
 10 10 20 1 10 lru 0
+
 10 10 10 1 100 lru 0
 10 10 10 2 10 lru 0
 20 10 10 2 10 lru 0
