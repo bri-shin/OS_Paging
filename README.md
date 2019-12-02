@@ -25,7 +25,7 @@ Simulation of demand paging that determines number of page faults depending on p
 On the terminal, this program can be run by:
 
 ```bash
-$ python3 run.py 10 10 20 1 10 lru 0
+$ python3 pager.py 10 10 20 1 10 lru 0
 ```
 
 Refer below for sample inputs.

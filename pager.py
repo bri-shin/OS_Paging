@@ -61,8 +61,8 @@ class Process():
         self.evicts = 0         # number of page evictions
 
         self.word = (111*processID) % S # Beginning of referemce
-        self.pageList = []
-        self.start()
+        self.pageList = []      # List containing pages
+        self.start()            # Filling pages when starting
         
     # When printing process
     def __str__(self):
@@ -87,16 +87,20 @@ class Process():
 
         return self.word
 
+    # Return current page
     def getCurrentPage(self):
         pageIndex = int(math.floor(self.word / P))
         return self.pageList[pageIndex]
     
+    # Increment Reference Value
     def referenceUp(self):
         self.ref += 1
 
+    # Increment Residency Value
     def residencyUp(self):
         self.res += 1
 
+    # Determine if process is terminated
     def boolTerminate(self):
         if self.ref < N:
             return False
@@ -147,6 +151,7 @@ class ProcessSummary(list):
         faults = 0
         evicts = 0
 
+        # Iteration per process
         for process in self:
             res += process.res
             faults += process.faults
@@ -154,6 +159,7 @@ class ProcessSummary(list):
 
             # print("@@@@@", process.evicts)
 
+            # 
             if process.evicts == 0:
                 print("Process {} had {} faults.\n     With no evictions, the average residence is undefined.". format(process.processID, process.faults))
             else:
@@ -164,6 +170,7 @@ class ProcessSummary(list):
         else:
             print("The total number of faults is {} and the overall average residency is {}.".format(faults, res/evicts))
     
+    # Check if all of the processes are terminated
     def boolTerminate(self):
         # checked
         for process in self:
@@ -180,9 +187,11 @@ class Page():
         self.pageID = pageID
         self.res = 0
 
+    # Increment Process' reference value
     def refer(self):
         self.owner.referenceUp()
     
+    # Increment Residency value
     def residencyUp(self):
         self.res += 1
     
@@ -197,12 +206,14 @@ class Frame():
     
         self.page = None
 
+    # Modifying print(Frame) statement
     def __str__(self):
         if self.page is None:
             return "Frame {} is Empty".format(self.frameID)
         else:
             return "Frame {}: Page {} of Process {}".format(self.frameID, self.page.num, self.page.pageID)
 
+    # Increment Reference value based on time referenced
     def refer(self):
         if self.page is None:
             raise Exception("Referred frame is empty")
@@ -217,8 +228,8 @@ class Frame():
         self.page.refer()
 
     # def link(self, page):
-    #     self.page = page
 
+    # Restarting Frame
     def restart(self):
         self.__init__(self.frameID)
 
@@ -227,11 +238,13 @@ class FrameTable(list):
     def __init__(self):
         super(FrameTable, self).__init__()
 
+    # Starting Frame Table by filling with frame
     def start(self, numFrames):
         for f in range(numFrames):
             self.append(Frame(f))
         return self
     
+    # Return specified frame
     def getFrameID(self, page):
         for f in self:
             
@@ -239,40 +252,65 @@ class FrameTable(list):
                 return f
         return None
 
+    # Increment Residency Value 
     def updateRes(self):
         for f in self:
             if f.page is not None:
                 f.page.residencyUp()
 
+    # Evict Algorithm in LIFO
     def evictLIFO(self):
+        # Initial sort for standardization
         frameT = sorted(self, key = lambda frame: frame.firstRef)[-1]
         page = frameT.page
         process = page.owner
+
+        # Increment process residency by page residency
         process.res += page.res
+        
+        # After increment, set page residency to 0
         page.res = 0
+
+        # Increment process evictions value
         process.evicts += 1
         frameT.restart()
         return frameT
-        
+
+    # Evict Algorithm in Random
     def evictRand(self):
+        # Initial sort for standardization
         totalFrame = int(math.ceil(M/P))
         random = specs.rand.stripFile()
         frameIndex = random % totalFrame
         frameT = sorted(self, key = lambda frame: frame.frameID)[frameIndex]
         page = frameT.page
         process = page.owner
+
+        # Increment process residency by page residency
         process.res += page.res
+        
+        # After increment, set page residency to 0
         page.res = 0
+
+        # Increment process evictions value
         process.evicts += 1
         frameT.restart()
         return frameT
 
+    # Evict Algorithm in LRU
     def evictLRU(self):
+        # Initial sort for standardization
         frameT = sorted(self, key = lambda frame: frame.finalRef)[0]
         page = frameT.page
         process = page.owner
+
+        # Increment process residency by page residency
         process.res += page.res
+        
+        # After increment, set page residency to 0
         page.res = 0
+
+        # Increment process evictions value
         process.evicts += 1
         frameT.restart()
         return frameT
@@ -322,6 +360,7 @@ def main():
     # Run while the processes are not termianted
     while processSummary.boolTerminate() == False:
         
+        # Iterate per process
         for process in processSummary:
             q = 3   # provided
             for i in range(q):
@@ -330,6 +369,8 @@ def main():
                 # References Page
                 currentPage = process.getCurrentPage()
                 currentFrame = frameTable.getFrameID(currentPage)
+
+                # Update time count
                 specs.time.updateTimeCount()
 
                 # Checking for page fault
